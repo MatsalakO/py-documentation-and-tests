@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db.models import F, Count
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets, mixins, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -127,6 +128,30 @@ class MovieViewSet(
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        # extra parameters added to the schema
+        parameters=[
+            OpenApiParameter(
+                name="genres",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by genres id",
+            ),
+            OpenApiParameter(
+                name="title",
+                type=str,
+                description="Filter by movie title",
+            ),
+            OpenApiParameter(
+                name="actors",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by actors id",
+            ),
+        ],
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of movies."""
+        return super().list(request, *args, **kwargs)
+
 
 class MovieSessionViewSet(viewsets.ModelViewSet):
     queryset = (
@@ -166,6 +191,24 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
             return MovieSessionDetailSerializer
 
         return MovieSessionSerializer
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="movie",
+                type=int,
+                description="Filter by movies id",
+            ),
+            OpenApiParameter(
+                name="date",
+                type=str,
+                description="Filter by movie date",
+            ),
+        ],
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of movie sessions."""
+        return super().list(request, *args, **kwargs)
 
 
 class OrderPagination(PageNumberPagination):
